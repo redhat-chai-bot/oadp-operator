@@ -1,0 +1,73 @@
+# Dockerfile.cli-downloads
+#
+# Multi-stage Dockerfile to build a unified CLI download server image.
+# Combines binaries from both OADP CLI and VMDP CLI images into a single
+# image served by a lightweight Go HTTP file server.
+#
+# Build:
+#   docker build -f Dockerfile.cli-downloads -t quay.io/konveyor/oadp-unified-cli:latest .
+#
+# The resulting image serves on port 8080:
+#   /oadp/  — OADP CLI binaries
+#   /vmdp/  — VMDP CLI binaries
+#
+# Build-time overrides (adjust if using custom source images):
+#   --build-arg CLI_IMAGE=quay.io/konveyor/oadp-cli-binaries:latest
+#   --build-arg VMDP_IMAGE=quay.io/konveyor/oadp-vmdp-binaries:latest
+
+ARG CLI_IMAGE=quay.io/konveyor/oadp-cli-binaries
+ARG VMDP_IMAGE=quay.io/konveyor/oadp-vmdp-binaries
+
+# Stage 1: Source for OADP CLI binaries
+FROM ${CLI_IMAGE} AS oadp-source
+
+# Stage 2: Source for VMDP CLI binaries
+FROM ${VMDP_IMAGE} AS vmdp-source
+
+# Stage 3: Build a minimal Go static file server
+FROM --platform=$BUILDPLATFORM quay.io/konveyor/builder:ubi9-latest AS builder
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /build
+RUN cat > main.go <<'GOEOF'
+package main
+
+import (
+	"log"
+	"net/http"
+)
+
+func main() {
+	dir := "/downloads"
+	port := ":8080"
+	log.Printf("Unified CLI download server — serving %s on %s", dir, port)
+	log.Fatal(http.ListenAndServe(port, http.FileServer(http.Dir(dir))))
+}
+GOEOF
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o /fileserver main.go
+
+# Stage 4: Final unified image
+FROM registry.access.redhat.com/ubi9-minimal
+
+COPY --from=builder /fileserver /usr/local/bin/fileserver
+
+# Copy CLI binary content from source images into separate subdirectories.
+#
+# NOTE: The COPY source paths must match the directory structure of the
+# upstream CLI images. The konveyor images typically place downloadable
+# artifacts in /opt/app-root/src/. If your source images use a different
+# layout, adjust the paths below.
+#
+# A broad fallback is to COPY the entire root (COPY --from=oadp-source / ...)
+# which works but includes system files — acceptable for a PoC but should be
+# refined for production.
+COPY --from=oadp-source / /downloads/oadp/
+COPY --from=vmdp-source / /downloads/vmdp/
+
+USER 65532:65532
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/fileserver"]

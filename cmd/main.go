@@ -299,32 +299,26 @@ func main() {
 	}
 	//+kubebuilder:scaffold:builder
 
-	// Add CLI/VMDP download setup runnables.
+	// Add unified CLI/VMDP download setup runnable.
+	// Replaces the previous two separate runnables (CLIDownloadSetup +
+	// VMDPDownloadSetup) with a single UnifiedCLIDownloadSetup that creates
+	// one deployment serving both sets of binaries.
 	// Skip when namespace-scoped mode is off or the ConsoleCLIDownload CRD
 	// is absent (clusters without Console capability, e.g. SNO).
 	if watchNamespace == "" {
-		setupLog.Info("Skipping CLI and VMDP download setup - watchNamespace not set")
+		setupLog.Info("Skipping unified CLI download setup - watchNamespace not set")
 	} else if available, err := controller.IsConsoleCRDAvailable(mgr.GetRESTMapper(), setupLog); !available {
 		if err != nil {
-			setupLog.Error(err, "unable to check ConsoleCLIDownload CRD availability, skipping CLI/VMDP download setup")
+			setupLog.Error(err, "unable to check ConsoleCLIDownload CRD availability, skipping unified CLI download setup")
 		}
 	} else {
-		if err := mgr.Add(&controller.CLIDownloadSetup{
+		if err := mgr.Add(&controller.UnifiedCLIDownloadSetup{
 			Client:            mgr.GetClient(),
 			Namespace:         watchNamespace,
 			OperatorName:      "openshift-adp-controller-manager",
 			OperatorNamespace: watchNamespace,
 		}); err != nil {
-			setupLog.Error(err, "unable to add CLI download setup")
-			os.Exit(1)
-		}
-		if err := mgr.Add(&controller.VMDPDownloadSetup{
-			Client:            mgr.GetClient(),
-			Namespace:         watchNamespace,
-			OperatorName:      "openshift-adp-controller-manager",
-			OperatorNamespace: watchNamespace,
-		}); err != nil {
-			setupLog.Error(err, "unable to add VMDP download setup")
+			setupLog.Error(err, "unable to add unified CLI download setup")
 			os.Exit(1)
 		}
 	}
