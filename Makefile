@@ -195,9 +195,10 @@ vet: check-go ## Run go vet against code.
 
 # If test results in prow are different, it is because the environment used.
 # You can simulate their env by running
-# docker run --platform linux/amd64 -w $PWD -v $PWD:$PWD -it quay-proxy.ci.openshift.org/openshift/ci:ocp_builder_rhel-8-golang-1.20-openshift-4.14 sh -c "make test"
-# where the image corresponds to the prow config for the test job, https://github.com/openshift/release/blob/master/ci-operator/config/openshift/oadp-operator/openshift-oadp-operator-oadp-dev.yaml#L1-L5
-# to login to registry cluster follow https://docs.ci.openshift.org/docs/how-tos/use-registries-in-build-farm/#how-do-i-access-images-that-were-built-during-ci
+# docker run --platform linux/amd64 -w $PWD -v $PWD:$PWD -it quay.io/konveyor/builder:ubi9-v1.26 sh -c "make test"
+# where the image corresponds to the build_root in the prow config for the test job, https://github.com/openshift/release/blob/master/ci-operator/config/openshift/oadp-operator/openshift-oadp-operator-oadp-dev.yaml#L1-L5
+# konveyor/builder is a public image on quay.io, no CI registry login is needed.
+# For other CI images, see https://docs.ci.openshift.org/docs/how-tos/use-registries-in-build-farm/#how-do-i-access-images-that-were-built-during-ci
 # If bin/ contains binaries of different arch, you may remove them so the container can install their arch.
 .PHONY: test
 test: check-go vet envtest ## Run unit tests; run Go linters checks; check if api and bundle folders are up to date; and check if go dependencies are valid
