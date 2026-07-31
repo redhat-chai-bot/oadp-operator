@@ -194,10 +194,12 @@ After creating these files, run:
 Finally, add image to `core-services/image-mirroring/konveyor/mapping_konveyor_latest`
 ```diff
 ...
- registry.ci.openshift.org/konveyor/oadp-operator:oadp-operator-1.3 quay.io/konveyor/oadp-operator:oadp-1.3-latest quay.io/konveyor/oadp-operator:oadp-1.3-amd64 quay.io/konveyor/oadp-operator:oadp-1.3
-+registry.ci.openshift.org/konveyor/oadp-operator:oadp-operator-1.4 quay.io/konveyor/oadp-operator:oadp-1.4-latest quay.io/konveyor/oadp-operator:oadp-1.4-amd64 quay.io/konveyor/oadp-operator:oadp-1.4
+ quay.io/openshift/ci:konveyor_oadp-operator_oadp-operator-1.3 quay.io/konveyor/oadp-operator:oadp-1.3-latest quay.io/konveyor/oadp-operator:oadp-1.3-amd64 quay.io/konveyor/oadp-operator:oadp-1.3
++quay.io/openshift/ci:konveyor_oadp-operator_oadp-operator-1.4 quay.io/konveyor/oadp-operator:oadp-1.4-latest quay.io/konveyor/oadp-operator:oadp-1.4-amd64 quay.io/konveyor/oadp-operator:oadp-1.4
 ...
 ```
+
+> **Note**: As of August 2026, CI images are promoted to QCI only and `registry.ci.openshift.org` is no longer used for image promotion.
 
 #### Example: updating release branch for OADP operator repository
 
