@@ -931,7 +931,7 @@ var _ = ginkgo.Describe("VM backup and restore tests", ginkgo.Ordered, func() {
 				var actualBackupType string
 				gomega.Eventually(func() error {
 					var err error
-					actualBackupType, _, err = v.GetVMBBackupType(incSeqNamespace, dataUploadName)
+					actualBackupType, _, err = v.GetVMBBackupType(incSeqNamespace, namespace, dataUploadName)
 					return err
 				}, 5*time.Minute, time.Second*5).Should(gomega.Succeed(), "failed to get VirtualMachineBackup status for DataUpload %s", dataUploadName)
 				// VirtualMachineBackup.status.type is PascalCase (virt-controller's own
@@ -1079,7 +1079,7 @@ var _ = ginkgo.Describe("VM backup and restore tests", ginkgo.Ordered, func() {
 			var actualBackupType string
 			gomega.Eventually(func() error {
 				var err error
-				actualBackupType, _, err = v.GetVMBBackupType(vmNamespace, dataUploadName)
+				actualBackupType, _, err = v.GetVMBBackupType(vmNamespace, namespace, dataUploadName)
 				return err
 			}, 5*time.Minute, time.Second*5).Should(gomega.Succeed(), "failed to get VirtualMachineBackup status for DataUpload %s", dataUploadName)
 			actualBackupType = strings.ToLower(actualBackupType)
